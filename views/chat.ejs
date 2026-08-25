@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>RAG Chat | DocuRAG</title>
+  </head>
+  <body>
+    <header style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem">
+      <h1>RAG Chat</h1>
+      <div>
+        <a href="/">Dashboard</a>
+        |
+        <a href="/documents">Documents</a>
+        |
+        <a href="/conversations">Conversations</a>
+      </div>
+    </header>
+
+    <% if (locals.error) { %>
+    <div style="color: red"><%= locals.error %></div>
+    <% } %>
+
+    <section style="margin-bottom: 1rem; max-width: 900px">
+      <label for="documentIds">Select documents:</label>
+      <select id="documentIds" multiple size="8" style="display: block; width: 100%; margin-top: 0.5rem">
+        <% (locals.files || []).forEach(function(file) { %>
+        <option value="<%= file._id %>" <%= locals.selectedDocumentId && locals.selectedDocumentId.toString() === file._id.toString() ? "selected" : "" %>>
+          <%= file.originalName %> (<%= file.processingStatus %>)
+        </option>
+        <% }) %>
+      </select>
+    </section>
+
+    <section style="max-width: 900px; margin-bottom: 1rem">
+      <form id="ask-form" style="display: grid; gap: 0.5rem">
+        <label for="question">Question</label>
+        <textarea id="question" rows="4" placeholder="Ask a question about your selected documents" required></textarea>
+        <button type="submit">Ask</button>
+      </form>
+    </section>
+
+    <section id="messages" style="max-width: 900px">
+      <% if (locals.selectedConversation && locals.selectedConversation.messages && locals.selectedConversation.messages.length > 0) { %>
+        <% locals.selectedConversation.messages.forEach(function(message) { %>
+          <article style="border: 1px solid #ddd; padding: 0.75rem; margin-bottom: 0.75rem">
+            <h3 style="margin-top: 0"><%= message.role %></h3>
+            <p><%= message.content %></p>
+            <% if (message.sources && message.sources.length > 0) { %>
+              <p><strong>Sources:</strong></p>
+              <ul>
+                <% message.sources.forEach(function(source) { %>
+                  <li><%= source.document %> (chunk <%= source.chunkIndex %>, score <%= source.score %>)</li>
+                <% }) %>
+              </ul>
+            <% } %>
+          </article>
+        <% }) %>
+      <% } %>
+    </section>
+
+    <script>
+      const form = document.getElementById("ask-form");
+      const questionInput = document.getElementById("question");
+      const docSelect = document.getElementById("documentIds");
+      const messageContainer = document.getElementById("messages");
+      let conversationId = "<%= locals.selectedConversation ? locals.selectedConversation._id : "" %>";
+
+      function renderMessage(role, content, sources) {
+        const article = document.createElement("article");
+        article.style.border = "1px solid #ddd";
+        article.style.padding = "0.75rem";
+        article.style.marginBottom = "0.75rem";
+
+        const title = document.createElement("h3");
+        title.style.marginTop = "0";
+        title.textContent = role;
+        article.appendChild(title);
+
+        const paragraph = document.createElement("p");
+        paragraph.textContent = content;
+        article.appendChild(paragraph);
+
+        if (sources && sources.length > 0) {
+          const label = document.createElement("p");
+          label.innerHTML = "<strong>Sources:</strong>";
+          article.appendChild(label);
+
+          const list = document.createElement("ul");
+          sources.forEach((source) => {
+            const item = document.createElement("li");
+            item.textContent = `${source.document} (chunk ${source.chunkIndex}, score ${source.score})`;
+            list.appendChild(item);
+          });
+          article.appendChild(list);
+        }
+
+        messageContainer.appendChild(article);
+      }
+
+      form.addEventListener("submit", async (event) => {
+        event.preventDefault();
+
+        const question = questionInput.value.trim();
+        if (!question) {
+          return;
+        }
+
+        const selectedDocumentIds = Array.from(docSelect.selectedOptions).map((option) => option.value);
+
+        renderMessage("user", question, []);
+        questionInput.value = "";
+
+        const response = await fetch("/api/rag/ask", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            question,
+            documentIds: selectedDocumentIds,
+            conversationId: conversationId || null,
+          }),
+        });
+
+        const payload = await response.json();
+
+        if (!response.ok) {
+          renderMessage("assistant", payload.error || "Request failed.", []);
+          return;
+        }
+
+        conversationId = payload.conversationId;
+        renderMessage("assistant", payload.answer, payload.sources || []);
+      });
+    </script>
+  </body>
+</html>

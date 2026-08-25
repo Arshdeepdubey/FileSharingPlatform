@@ -3,16 +3,32 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Index Paget</title>
+    <title>DocuRAG Dashboard</title>
   </head>
 
   <body>
-    <% if ( locals.fileLink != null) { %>
-    <div style="margin-bottom: 1rem">
-      Your file is uploaded!
-      <a href="<%= locals.fileLink %>"><%= locals.fileLink %></a>
-    </div>
+    <header style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem">
+      <h1>DocuRAG</h1>
+      <div>
+        <span><%= locals.currentUser ? locals.currentUser.email : "" %></span>
+        <form action="/auth/logout" method="post" style="display: inline; margin-left: 0.5rem">
+          <button type="submit">Logout</button>
+        </form>
+      </div>
+    </header>
+
+    <p>
+      <a href="/documents">View all documents</a>
+      |
+      <a href="/chat">RAG Chat</a>
+      |
+      <a href="/conversations">Conversations</a>
+    </p>
+
+    <% if (locals.error) { %>
+    <div style="color: red; margin-bottom: 1rem"><%= locals.error %></div>
     <% } %>
+
     <form
       action="/upload"
       method="post"
@@ -20,16 +36,48 @@
         display: grid;
         gap: 0.5rem;
         grid-template-columns: auto 1fr;
-        max-width: 500px;
-        margin: 0 auto;
+        max-width: 700px;
+        margin-bottom: 2rem;
       "
       enctype="multipart/form-data"
     >
-      <label for="file">File:</label>
+      <label for="file">Upload document:</label>
       <input type="file" id="file" name="file" required />
-      <label for="password">Password:</label>
-      <input type="password" id="password" name="password" required />
-      <button style="grid-column: span 2" type="submit">Share</button>
+      <button style="grid-column: span 2" type="submit">Upload</button>
     </form>
+
+    <h2>Recent Documents</h2>
+    <% if (!locals.files || locals.files.length === 0) { %>
+    <p>No documents uploaded yet.</p>
+    <% } else { %>
+    <table border="1" cellpadding="8" cellspacing="0" style="border-collapse: collapse; width: 100%; max-width: 900px">
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Status</th>
+          <th>Size (bytes)</th>
+          <th>Downloads</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        <% locals.files.slice(0, 10).forEach(function(file) { %>
+        <tr>
+          <td><%= file.originalName %></td>
+          <td><%= file.processingStatus %></td>
+          <td><%= file.size %></td>
+          <td><%= file.downloadCount %></td>
+          <td>
+            <a href="/documents/<%= file._id %>">View</a>
+            |
+            <a href="/documents/<%= file._id %>/download">Download</a>
+            |
+            <a href="/chat?documentId=<%= file._id %>">Ask</a>
+          </td>
+        </tr>
+        <% }) %>
+      </tbody>
+    </table>
+    <% } %>
   </body>
 </html>

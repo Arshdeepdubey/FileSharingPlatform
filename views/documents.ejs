@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Documents | DocuRAG</title>
+  </head>
+  <body>
+    <header style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem">
+      <h1>Your Documents</h1>
+      <div>
+        <a href="/">Dashboard</a>
+        |
+        <a href="/chat">RAG Chat</a>
+        |
+        <a href="/conversations">Conversations</a>
+        <form action="/auth/logout" method="post" style="display: inline; margin-left: 0.5rem">
+          <button type="submit">Logout</button>
+        </form>
+      </div>
+    </header>
+
+    <% if (!locals.files || locals.files.length === 0) { %>
+    <p>No documents found.</p>
+    <% } else { %>
+    <table border="1" cellpadding="8" cellspacing="0" style="border-collapse: collapse; width: 100%; max-width: 1000px">
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>MIME type</th>
+          <th>Size</th>
+          <th>Status</th>
+          <th>Downloads</th>
+          <th>Uploaded</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        <% locals.files.forEach(function(file) { %>
+        <tr>
+          <td><%= file.originalName %></td>
+          <td><%= file.mimeType %></td>
+          <td><%= file.size %></td>
+          <td><%= file.processingStatus %></td>
+          <td><%= file.downloadCount %></td>
+          <td><%= new Date(file.createdAt).toLocaleString() %></td>
+          <td>
+            <a href="/documents/<%= file._id %>">View</a>
+            |
+            <a href="/documents/<%= file._id %>/download">Download</a>
+            |
+            <a href="/chat?documentId=<%= file._id %>">Ask</a>
+          </td>
+        </tr>
+        <% }) %>
+      </tbody>
+    </table>
+    <% } %>
+  </body>
+</html>

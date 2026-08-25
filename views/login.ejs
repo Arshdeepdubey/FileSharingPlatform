@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Login | DocuRAG</title>
+  </head>
+  <body>
+    <h1>Login</h1>
+    <% if (locals.error) { %>
+    <div style="color: red; margin-bottom: 1rem"><%= locals.error %></div>
+    <% } %>
+    <form action="/auth/login" method="post" style="display: grid; gap: 0.5rem; max-width: 400px">
+      <label for="email">Email</label>
+      <input id="email" name="email" type="email" required />
+
+      <label for="password">Password</label>
+      <input id="password" name="password" type="password" required />
+
+      <button type="submit">Login</button>
+    </form>
+
+    <p style="margin-top: 1rem">No account? <a href="/register">Register</a></p>
+  </body>
+</html>

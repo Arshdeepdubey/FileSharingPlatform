@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document | DocuRAG</title>
+  </head>
+  <body>
+    <header style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem">
+      <h1><%= locals.file.originalName %></h1>
+      <div>
+        <a href="/documents">Back to documents</a>
+        |
+        <a href="/chat?documentId=<%= locals.file._id %>">Ask questions</a>
+      </div>
+    </header>
+
+    <table border="1" cellpadding="8" cellspacing="0" style="border-collapse: collapse; max-width: 900px; width: 100%">
+      <tbody>
+        <tr>
+          <th align="left">Document ID</th>
+          <td><%= locals.file._id %></td>
+        </tr>
+        <tr>
+          <th align="left">Status</th>
+          <td><%= locals.file.processingStatus %></td>
+        </tr>
+        <tr>
+          <th align="left">Type</th>
+          <td><%= locals.file.mimeType %></td>
+        </tr>
+        <tr>
+          <th align="left">Size</th>
+          <td><%= locals.file.size %> bytes</td>
+        </tr>
+        <tr>
+          <th align="left">Downloads</th>
+          <td><%= locals.file.downloadCount %></td>
+        </tr>
+        <tr>
+          <th align="left">Uploaded</th>
+          <td><%= new Date(locals.file.createdAt).toLocaleString() %></td>
+        </tr>
+        <tr>
+          <th align="left">Updated</th>
+          <td><%= new Date(locals.file.updatedAt).toLocaleString() %></td>
+        </tr>
+        <tr>
+          <th align="left">Processing error</th>
+          <td><%= locals.file.processingError || "None" %></td>
+        </tr>
+      </tbody>
+    </table>
+
+    <p style="margin-top: 1rem">
+      <a href="/documents/<%= locals.file._id %>/download">Download</a>
+    </p>
+  </body>
+</html>
